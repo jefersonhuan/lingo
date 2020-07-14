@@ -18,9 +18,11 @@ type Server struct {
 const serversCollection = "servers"
 
 func (server Server) ToURI() string {
-	uri := fmt.Sprintf("mongodb://%s:%d", server.Host, server.Port)
-
-	return uri
+	if server.User != "" && server.Password != "" {
+		return fmt.Sprintf("mongodb://%s:%s@%s:%d", server.User, server.Password, server.Host, server.Port)
+	} else {
+		return fmt.Sprintf("mongodb://%s:%d", server.Host, server.Port)
+	}
 }
 
 func (server Server) Save() error {
