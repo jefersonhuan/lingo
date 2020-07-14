@@ -18,6 +18,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"mongo-transfer/models"
+	"mongo-transfer/operations"
+	"time"
 )
 
 var addServerCmd = &cobra.Command{
@@ -43,7 +46,7 @@ mongo-transfer addServer --from-uri="mongodb://..."`,
 }
 
 func addServerPrompt() (err error) {
-	server := Server{}
+	server := models.Server{}
 
 	var argsRead int
 
@@ -71,17 +74,41 @@ func addServerPrompt() (err error) {
 		return
 	}
 
-	var option string
-	fmt.Print("Do you wish to test connection now? [y/n] ")
-	_, _ = fmt.Scanf("%q", &option)
+	fmt.Println("Now, we need an identifier to this server")
 
-	switch option {
-	case "y":
-		fmt.Println("Testing connection...")
+	for {
+		fmt.Print("ID: ")
+		if argsRead, err = fmt.Scanln(&server.ID); argsRead == 0 || err != nil {
+			fmt.Println("Please, insert a valid ID")
+			continue
+		}
+
 		break
 	}
 
-	return saveServer(server)
+	server.CreatedAt = time.Now()
+
+	var option string
+	fmt.Print("Do you wish to test connection now? [y/n] ")
+	if _, err = fmt.Scanf("%s", &option); err != nil {
+		fmt.Println("Oops! Couldn't test the server, but we'll save either way")
+	} else if option == "y" {
+		fmt.Println("Testing connection...")
+		if err = operations.TestConnection(server); err != nil {
+			fmt.Println("Couldn't connect to the server, because:", err.Error())
+			fmt.Println("We'll save either way. But you can change (or delete) this server at anytime")
+		} else {
+			fmt.Printf("Successfully connected to %s\n", server.ID)
+		}
+	}
+
+	if err = server.Save(); err != nil {
+		return
+	}
+
+	fmt.Println("Successfully saved server")
+
+	return
 }
 
 func init() {

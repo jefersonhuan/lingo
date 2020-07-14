@@ -18,10 +18,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"os"
-
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
@@ -67,11 +65,9 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

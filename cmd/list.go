@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -36,15 +35,6 @@ to quickly create a Cobra application.`,
 }
 
 func listServers() error {
-	var servers []Server
-	if err := readServers(&servers); err != nil {
-		return err
-	}
-
-	for _, server := range servers {
-		fmt.Println(server)
-	}
-
 	return nil
 }
 
