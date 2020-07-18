@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"mongo-transfer/database"
@@ -11,11 +10,8 @@ var detailsCmd = &cobra.Command{
 	Use:   "details",
 	Short: "",
 	Long:  ``,
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if args[0] == "" {
-			return errors.New("not a valid server ID")
-		}
-
 		serverID := args[0]
 
 		fmt.Printf("Fetching details for \"%s\"\n", serverID)
@@ -34,7 +30,13 @@ var detailsCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(server.Databases)
+		if len(server.Databases) == 0 {
+			fmt.Println("No Databases where found")
+		}
+
+		for _, database := range server.Databases {
+			fmt.Println(database)
+		}
 
 		return
 	},
