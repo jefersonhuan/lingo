@@ -28,7 +28,7 @@ func (server *Server) Connect() (err error) {
 	return
 }
 
-func (server Server) Ping() (err error) {
+func (server *Server) Ping() (err error) {
 	fmt.Println("Connecting to", server.URI)
 
 	err = server.Connect()
