@@ -15,7 +15,7 @@ func (server *Server) Connect() (err error) {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 	err = client.Connect(ctx)
 	if err != nil {
@@ -35,6 +35,8 @@ func (server Server) Ping() (err error) {
 	if err != nil {
 		return
 	}
+
+	defer server.Disconnect()
 
 	return server.client.Ping(server.ctx, readpref.Primary())
 }

@@ -62,7 +62,7 @@ func AddServerPrompt() (err error) {
 	fmt.Println("Now, we need an identifier to this server")
 
 	server := database.Server{}
-	server.FromURI(username, password, host, port)
+	server.BuildURI(username, password, host, port)
 
 	for {
 		fmt.Print("ID: ")
@@ -87,6 +87,7 @@ func AddServerPrompt() (err error) {
 			fmt.Println("We'll save either way. But you can change (or delete) this server at anytime")
 		} else {
 			fmt.Printf("Successfully connected to %s\n", server.ID)
+			server.Disconnect()
 		}
 	}
 

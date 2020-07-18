@@ -47,7 +47,7 @@ func (database Database) String() (content string) {
 	return
 }
 
-func (server *Server) FromURI(username, password, host string, port int) {
+func (server *Server) BuildURI(username, password, host string, port int) {
 	prefix := "mongodb://"
 	suffix := host + ":" + strconv.Itoa(port)
 
