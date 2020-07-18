@@ -10,15 +10,17 @@ func (server *Server) LoadAll() error {
 }
 
 func (server *Server) LoadDatabases() (err error) {
-	result, err := server.client.ListDatabaseNames(server.ctx, bson.D{})
+	result, err := server.client.ListDatabases(server.ctx, bson.D{})
 	if err != nil {
 		return
 	}
 
-	for _, database := range result {
-		server.Databases = append(server.Databases, Database{
-			Name: database,
-		})
+	server.Databases = make([]Database, len(result.Databases))
+
+	for index, database := range result.Databases {
+		server.Databases[index] = Database{
+			Specification: database,
+		}
 	}
 
 	return
@@ -26,7 +28,7 @@ func (server *Server) LoadDatabases() (err error) {
 
 func (server *Server) LoadCollections() error {
 	for index, database := range server.Databases {
-		cols, err := server.client.Database(database.Name).ListCollectionNames(server.ctx, bson.D{})
+		cols, err := server.client.Database(database.Specification.Name).ListCollectionNames(server.ctx, bson.D{})
 		if err != nil {
 			continue
 		}

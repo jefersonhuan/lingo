@@ -4,8 +4,8 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"mongo-transfer/store"
+	"mongo-transfer/utils"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -21,26 +21,22 @@ type Server struct {
 }
 
 type Database struct {
-	Name        string
-	Collections []string
+	Specification mongo.DatabaseSpecification
+	Collections   []string
 }
 
 const serversCollection = "servers"
 
 func (database Database) String() (content string) {
-	divider := strings.Repeat("-", 40)
-
-	content = "Database: " + database.Name + "\n"
+	content = utils.ColorfulString("blue", "Database: ")
+	content += database.Specification.Name + "\n"
+	content += "SizeOnDisk: " + strconv.FormatInt(database.Specification.SizeOnDisk, 10) + " kb\n"
 
 	if len(database.Collections) != 0 {
-		content += "\nCollections:\n"
+		content += utils.ColorfulString("cyan", "Collections:\n")
 
-		for index, col := range database.Collections {
-			content += col + "\t"
-
-			if len(database.Collections)-1 == index {
-				content += "\n" + divider + "\n"
-			}
+		for _, col := range database.Collections {
+			content += "- " + col + "\n"
 		}
 	}
 
