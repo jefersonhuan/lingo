@@ -7,16 +7,14 @@ import (
 	"time"
 )
 
-var serverURI, serverID string
-
-var addServerCmd = &cobra.Command{
-	Use:   "addServer",
+var addCmd = &cobra.Command{
+	Use:   "add",
 	Short: "Add a mongodb Server",
 	Long: `Ex. 
-mongo-transfer addServer --from-uri="mongodb://localhost:27017"`,
+mongo-transfer add --from-uri="mongodb://localhost:27017" --name="local"`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fn := func() func() error {
-			if serverURI != "" {
+			if serverURIFlag != "" {
 				return AddServerFromURI
 			}
 
@@ -32,7 +30,7 @@ mongo-transfer addServer --from-uri="mongodb://localhost:27017"`,
 }
 
 func AddServerFromURI() error {
-	server := &database.Server{URI: serverURI, ID: serverID}
+	server := &database.Server{URI: serverURIFlag, ID: serverIDFlag}
 
 	return testAndSave(server)
 }
@@ -127,8 +125,8 @@ func testConnectionPrompt(server *database.Server) (err error) {
 }
 
 func init() {
-	rootCmd.AddCommand(addServerCmd)
+	rootCmd.AddCommand(addCmd)
 
-	addServerCmd.Flags().StringVar(&serverURI, "from-uri", "", "adds server with given URI parameter")
-	addServerCmd.Flags().StringVar(&serverID, "name", "", "flag for the server's name")
+	addCmd.Flags().StringVar(&serverURIFlag, "from-uri", "", "adds server with given URI parameter")
+	addCmd.Flags().StringVar(&serverIDFlag, "name", "", "flag for the server's name")
 }
