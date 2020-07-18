@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"mongo-transfer/database"
-	"mongo-transfer/utils"
 )
 
 var listDatabasesCmd = &cobra.Command{
@@ -19,7 +18,9 @@ var listDatabasesCmd = &cobra.Command{
 			return
 		}
 
-		err = utils.MapWithErrors(server.LoadDatabases, server.LoadCollections)
+		defer server.Disconnect()
+
+		err = server.LoadAll()
 		if err != nil {
 			return
 		}

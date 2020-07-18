@@ -1,6 +1,6 @@
 package utils
 
-func MapWithErrors(functions ...func() error) error {
+func StepsFunctions(functions ...func() error) error {
 	for _, f := range functions {
 		err := f()
 		if err != nil {

@@ -38,3 +38,10 @@ func (server Server) Ping() (err error) {
 
 	return server.client.Ping(server.ctx, readpref.Primary())
 }
+
+func (server *Server) Disconnect() {
+	err := server.client.Disconnect(server.ctx)
+	if err != nil {
+		fmt.Printf("an error occurred while disconnecting the server: %v\n", err)
+	}
+}

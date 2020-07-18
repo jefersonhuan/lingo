@@ -2,7 +2,12 @@ package database
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"mongo-transfer/utils"
 )
+
+func (server *Server) LoadAll() error {
+	return utils.StepsFunctions(server.LoadDatabases, server.LoadCollections)
+}
 
 func (server *Server) LoadDatabases() (err error) {
 	result, err := server.client.ListDatabaseNames(server.ctx, bson.D{})
