@@ -29,8 +29,6 @@ func (server *Server) Connect() (err error) {
 }
 
 func (server *Server) Ping() (err error) {
-	fmt.Println("Connecting to", server.URI)
-
 	err = server.Connect()
 	if err != nil {
 		return
