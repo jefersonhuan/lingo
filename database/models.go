@@ -65,25 +65,13 @@ func (server *Server) Load(ID string) (err error) {
 		return
 	}
 
-	if err = server.Connect(); err != nil {
-		return
-	}
-
-	return
+	return server.Connect()
 }
 
 func (server Server) Save() error {
-	if err := store.Conn.Write(serversCollection, server.ID, server); err != nil {
-		return err
-	}
-
-	return nil
+	return store.Conn.Write(serversCollection, server.ID, server)
 }
 
 func (server Server) Delete() error {
-	if err := store.Conn.Delete(serversCollection, server.ID); err != nil {
-		return err
-	}
-
-	return nil
+	return store.Conn.Delete(serversCollection, server.ID)
 }
