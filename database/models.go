@@ -16,8 +16,8 @@ type Server struct {
 
 	Databases []Database
 
-	ctx    context.Context
-	client *mongo.Client
+	Ctx    context.Context
+	Client *mongo.Client
 }
 
 type Database struct {
@@ -56,8 +56,8 @@ func (server *Server) BuildURI(username, password, host string, port int) {
 	server.URI = prefix + auth + suffix
 }
 
-func (server *Server) Load(ID string) (err error) {
-	if err = store.Conn.Read(serversCollection, ID, &server); err != nil {
+func (server *Server) Fetch() (err error) {
+	if err = store.Conn.Read(serversCollection, server.ID, &server); err != nil {
 		return
 	}
 

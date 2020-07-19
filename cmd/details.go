@@ -16,9 +16,9 @@ var detailsCmd = &cobra.Command{
 
 		fmt.Printf("Fetching details for \"%s\"\n", serverID)
 
-		server := database.Server{}
+		server := database.Server{ID: serverID}
 
-		err = server.Load(serverID)
+		err = server.Fetch()
 		if err != nil {
 			return
 		}

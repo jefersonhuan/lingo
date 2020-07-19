@@ -10,20 +10,20 @@ import (
 )
 
 func (server *Server) Connect() (err error) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(server.URI))
+	client, err := mongo.NewClient(options.Client().ApplyURI(server.URI).SetMaxPoolSize(0))
 	if err != nil {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, _ := context.WithTimeout(context.TODO(), 60*time.Second)
 
 	err = client.Connect(ctx)
 	if err != nil {
 		return
 	}
 
-	server.client = client
-	server.ctx = ctx
+	server.Client = client
+	server.Ctx = ctx
 
 	return
 }
@@ -36,11 +36,11 @@ func (server *Server) Ping() (err error) {
 
 	defer server.Disconnect()
 
-	return server.client.Ping(server.ctx, readpref.Primary())
+	return server.Client.Ping(server.Ctx, readpref.Primary())
 }
 
 func (server *Server) Disconnect() {
-	err := server.client.Disconnect(server.ctx)
+	err := server.Client.Disconnect(server.Ctx)
 	if err != nil {
 		fmt.Printf("an error occurred while disconnecting the server: %v\n", err)
 	}

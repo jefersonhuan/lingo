@@ -37,11 +37,11 @@ func TestServer_Connect(t *testing.T) {
 				t.Errorf("Connect() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if err == nil && server.client == nil {
+			if err == nil && server.Client == nil {
 				t.Errorf("Connect() expected server.client to be initialized")
 			}
 
-			if err == nil && server.ctx == nil {
+			if err == nil && server.Ctx == nil {
 				t.Errorf("Connect() expected server.ctx to be initialized")
 			}
 		})
