@@ -34,15 +34,20 @@ func (transfer *Transfer) clone() (err error) {
 	}
 
 	for _, db := range source.Databases {
+		dbName := db.Specification.Name
+
+		if dbName == "local" || dbName == "config" || dbName == "admin" {
+			continue
+		}
+
 		buffers := make([]CollectionBuffer, len(db.Collections))
 		wg.Add(len(db.Collections))
 
 		go func(db database.Database) {
 			for index, coll := range db.Collections {
-				sourceCollection := source.Client.Database(db.Specification.Name).Collection(coll)
+				sourceCollection := source.Client.Database(dbName).Collection(coll)
 
-				buffers[index].handler = target.Client.Database(db.Specification.Name).Collection(coll)
-				buffers[index].mutex = &sync.Mutex{}
+				buffers[index].handler = target.Client.Database(dbName).Collection(coll)
 
 				if err = stepCloning(sourceCollection, &buffers[index], &failures, p); err != nil {
 					mes := fmt.Errorf("an error occurred while cloning collection %s: %w", coll, err)
@@ -74,7 +79,7 @@ func (transfer *Transfer) clone() (err error) {
 func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, failures *[]error, p *mpb.Progress) (err error) {
 	totalDocs, err := source.CountDocuments(context.TODO(), bson.D{})
 
-	var limit int64 = 2500
+	var limit int64 = 4000
 	var nPages int64
 
 	if err != nil {

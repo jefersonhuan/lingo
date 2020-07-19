@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"mongo-transfer/utils"
 )
@@ -10,7 +11,7 @@ func (server *Server) LoadAll() error {
 }
 
 func (server *Server) LoadDatabases() (err error) {
-	result, err := server.Client.ListDatabases(server.Ctx, bson.D{})
+	result, err := server.Client.ListDatabases(context.TODO(), bson.D{})
 	if err != nil {
 		return
 	}
@@ -28,7 +29,7 @@ func (server *Server) LoadDatabases() (err error) {
 
 func (server *Server) LoadCollections() error {
 	for index, database := range server.Databases {
-		cols, err := server.Client.Database(database.Specification.Name).ListCollectionNames(server.Ctx, bson.D{})
+		cols, err := server.Client.Database(database.Specification.Name).ListCollectionNames(context.TODO(), bson.D{})
 		if err != nil {
 			continue
 		}

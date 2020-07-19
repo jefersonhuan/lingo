@@ -40,10 +40,6 @@ func TestServer_Connect(t *testing.T) {
 			if err == nil && server.Client == nil {
 				t.Errorf("Connect() expected server.client to be initialized")
 			}
-
-			if err == nil && server.Ctx == nil {
-				t.Errorf("Connect() expected server.ctx to be initialized")
-			}
 		})
 	}
 }

@@ -23,7 +23,6 @@ func (server *Server) Connect() (err error) {
 	}
 
 	server.Client = client
-	server.Ctx = ctx
 
 	return
 }
@@ -36,11 +35,11 @@ func (server *Server) Ping() (err error) {
 
 	defer server.Disconnect()
 
-	return server.Client.Ping(server.Ctx, readpref.Primary())
+	return server.Client.Ping(context.TODO(), readpref.Primary())
 }
 
 func (server *Server) Disconnect() {
-	err := server.Client.Disconnect(server.Ctx)
+	err := server.Client.Disconnect(context.TODO())
 	if err != nil {
 		fmt.Printf("an error occurred while disconnecting the server: %v\n", err)
 	}

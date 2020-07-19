@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"mongo-transfer/store"
 	"mongo-transfer/utils"
@@ -16,7 +15,6 @@ type Server struct {
 
 	Databases []Database
 
-	Ctx    context.Context
 	Client *mongo.Client
 }
 

@@ -7,17 +7,6 @@ import (
 	"github.com/viant/toolbox"
 )
 
-func StepsFunctions(functions ...func() error) error {
-	for _, f := range functions {
-		err := f()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 var colors = map[string]string{
 	"reset": "\033[0m",
 
@@ -28,6 +17,17 @@ var colors = map[string]string{
 	"purple": "\033[35m",
 	"cyan":   "\033[36m",
 	"white":  "\033[37m",
+}
+
+func StepsFunctions(functions ...func() error) error {
+	for _, f := range functions {
+		err := f()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func ColorfulString(color string, content string) string {

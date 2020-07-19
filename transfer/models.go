@@ -25,11 +25,20 @@ type CollectionBuffer struct {
 }
 
 func (buffer *CollectionBuffer) flush(page int, wg *sync.WaitGroup, failures *[]error) {
+	var converterWg sync.WaitGroup
+
 	var docs = make([]interface{}, len(buffer.docs[page]))
 
-	for index, doc := range buffer.docs[page] {
-		docs[index] = doc
-	}
+	converterWg.Add(len(buffer.docs[page]))
+
+	go func() {
+		for index, doc := range buffer.docs[page] {
+			docs[index] = doc
+			converterWg.Done()
+		}
+	}()
+
+	converterWg.Wait()
 
 	opts := options.InsertMany().SetOrdered(true)
 	if _, err := buffer.handler.InsertMany(context.TODO(), docs, opts); err != nil {

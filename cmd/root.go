@@ -7,7 +7,12 @@ import (
 	"os"
 )
 
-var serverURIFlag, serverIDFlag, sourceServerFlag, targetServerFlag string
+var (
+	serverURIFlag,
+	serverIDFlag,
+	sourceServerFlag,
+	targetServerFlag string
+)
 
 var ErrRecordNotFound = errors.New("Unable to find file or directory named servers/local")
 
