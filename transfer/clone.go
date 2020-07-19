@@ -21,7 +21,7 @@ func (transfer *Transfer) clone() (err error) {
 	source := transfer.Source
 	target := transfer.Target
 
-	//p := mpb.New(mpb.WithWidth(64))
+	p := mpb.New(mpb.WithWidth(64))
 
 	fmt.Println("\nCloning databases from", source.ID)
 
@@ -54,9 +54,9 @@ func (transfer *Transfer) clone() (err error) {
 			wg.Add(int(nPages))
 			buffer := make(chan []interface{}, nPages)
 
-			//bar := startBarForCollection(db.Specification.Name+"."+coll, nPages, p)
+			bar := startBarForCollection(db.Specification.Name+"."+coll, nPages, p)
 
-			go startBuffer(targetCollection, buffer)
+			go startBuffer(targetCollection, buffer, bar)
 
 			if err = stepCloning(sourceCollection, buffer, nPages, limit); err != nil {
 				mes := fmt.Errorf("an error occurred while cloning collection %s: %w", coll, err)
@@ -68,7 +68,7 @@ func (transfer *Transfer) clone() (err error) {
 			wg.Wait()
 			close(buffer)
 
-			//bar.Completed()
+			bar.Completed()
 		}
 	}
 
@@ -111,10 +111,10 @@ func storeQueryResults(cursor *mongo.Cursor, buffer chan []interface{}) (error, 
 	return nil, docs
 }
 
-func startBuffer(target *mongo.Collection, docs chan []interface{}) {
+func startBuffer(target *mongo.Collection, docs chan []interface{}, bar *mpb.Bar) {
 	for data := range docs {
 		saveDocs(target, data)
-		//bar.Increment()
+		bar.Increment()
 
 		wg.Done()
 	}
