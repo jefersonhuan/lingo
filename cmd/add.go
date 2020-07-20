@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"mongo-transfer/database"
+	"lingo/database"
 	"time"
 )
 
@@ -11,7 +11,7 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a mongodb Server",
 	Long: `Ex. 
-mongo-transfer add --from-uri="mongodb://localhost:27017" --name="local"`,
+lingo add --from-uri="mongodb://localhost:27017" --name="local"`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fn := func() func() error {
 			if serverURIFlag != "" {

@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"errors"
+	"fmt"
 	"github.com/spf13/cobra"
-	"mongo-transfer/utils"
+	"lingo/utils"
 	"os"
 )
 
@@ -14,11 +14,9 @@ var (
 	targetServerFlag string
 )
 
-var ErrRecordNotFound = errors.New("Unable to find file or directory named servers/local")
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "mongo-transfer",
+	Use:   "lingo",
 	Short: "",
 	Long:  ``,
 }
@@ -27,7 +25,7 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		utils.ColorfulString("red", err.Error())
+		fmt.Println(utils.ColorfulString("red", err.Error()))
 		os.Exit(1)
 	}
 }

@@ -1,4 +1,4 @@
-module mongo-transfer
+module lingo
 
 go 1.14
 

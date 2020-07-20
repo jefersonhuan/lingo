@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
-	"mongo-transfer/database"
-	"mongo-transfer/transfer"
-	"mongo-transfer/utils"
+	"lingo/database"
+	"lingo/transfer"
+	"lingo/utils"
 	"time"
 )
 

@@ -28,7 +28,7 @@ func configDir() (dir string, err error) {
 		return
 	}
 
-	path := filepath.Join(home, ".mongo-transfer")
+	path := filepath.Join(home, ".lingo")
 
 	err = os.Mkdir(path, 0755)
 	if os.IsExist(err) {

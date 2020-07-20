@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
-	"mongo-transfer/database"
+	"lingo/database"
 )
 
 // deleteCmd represents the delete command
@@ -16,9 +15,7 @@ var deleteCmd = &cobra.Command{
 		server := database.Server{ID: args[0]}
 
 		err := server.Delete()
-		if err == ErrRecordNotFound {
-			return errors.New("server not found")
-		} else if err != nil {
+		if err != nil {
 			return err
 		}
 

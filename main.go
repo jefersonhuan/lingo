@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mongo-transfer/cmd"
-	"mongo-transfer/store"
+	"lingo/cmd"
+	"lingo/store"
 )
 
 func main() {

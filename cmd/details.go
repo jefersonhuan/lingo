@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"mongo-transfer/database"
+	"lingo/database"
 )
 
 var detailsCmd = &cobra.Command{
