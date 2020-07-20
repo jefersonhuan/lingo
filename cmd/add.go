@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"lingo/database"
+	"lingo/utils"
 	"time"
 )
 
@@ -117,7 +118,7 @@ func testConnectionPrompt(server *database.Server) (err error) {
 			fmt.Println("Couldn't connect to the server, because:", err.Error())
 			fmt.Println("We'll save either way. But you can change (or delete) this server at anytime")
 		} else {
-			fmt.Printf("Successfully connected to %s\n", server.ID)
+			fmt.Println(utils.ColorfulString("green", "Successfully connected to "+server.URI))
 		}
 	}
 
