@@ -12,17 +12,17 @@ import (
 	"mongo-transfer/utils"
 	"strings"
 	"sync"
+	"time"
 )
 
 const barTitleWidth = 45
 
 var wg, buffering sync.WaitGroup
+var failures []error
 
 func (transfer *Transfer) clone() (err error) {
 	source := transfer.Source
 	target := transfer.Target
-
-	var failures []error
 
 	p := mpb.New(mpb.WithWidth(64))
 
@@ -36,10 +36,6 @@ func (transfer *Transfer) clone() (err error) {
 	for _, db := range source.Databases {
 		dbName := db.Specification.Name
 
-		if dbName == "local" || dbName == "config" || dbName == "admin" {
-			continue
-		}
-
 		buffers := make([]CollectionBuffer, len(db.Collections))
 		wg.Add(len(db.Collections))
 
@@ -49,9 +45,9 @@ func (transfer *Transfer) clone() (err error) {
 
 				buffers[index].handler = target.Client.Database(dbName).Collection(coll)
 
-				if err = stepCloning(sourceCollection, &buffers[index], &failures, p); err != nil {
+				if err = stepCloning(sourceCollection, &buffers[index], p); err != nil {
 					mes := fmt.Errorf("an error occurred while cloning collection %s: %w", coll, err)
-					failures = append(failures, mes)
+					pushError(mes)
 
 					continue
 				}
@@ -66,7 +62,7 @@ func (transfer *Transfer) clone() (err error) {
 	buffering.Wait()
 
 	if len(failures) != 0 {
-		fmt.Println(utils.ColorfulString("yellow", "The following errors occurred:"))
+		fmt.Println(utils.ColorfulString("yellow", "\nThe following errors occurred:"))
 
 		for _, failure := range failures {
 			fmt.Println(utils.ColorfulString("red", failure.Error()))
@@ -76,50 +72,62 @@ func (transfer *Transfer) clone() (err error) {
 	return
 }
 
-func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, failures *[]error, p *mpb.Progress) (err error) {
-	totalDocs, err := source.CountDocuments(context.TODO(), bson.D{})
-
+func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, p *mpb.Progress) (err error) {
 	var limit int64 = 4000
-	var nPages int64
+	var nPages, page int64
 
-	if err != nil {
-		fmt.Println(err)
-	} else if totalDocs < limit {
-		nPages = 1
-	} else {
-		nPages = totalDocs/limit + 1
+	if err = fetchPageCount(source, &nPages, limit); err != nil {
+		return
 	}
 
 	bar := startBarForCollection(source.Database().Name()+"."+source.Name(), nPages, p)
 
-	var page int64
-
 	buffer.docs = make([][]bson.M, nPages)
 	buffering.Add(int(nPages))
 
-	for page = 0; page < nPages; page++ {
-		opts := options.Find().SetLimit(limit).SetSkip(page * limit)
-		cursor, err := source.Find(context.TODO(), bson.D{}, opts)
-		if err != nil {
-			break
+	go func() {
+		for page = 0; page < nPages; page++ {
+			ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+			opts := options.Find().SetLimit(limit).SetSkip(page * limit)
+
+			cursor, err := source.Find(ctx, bson.D{}, opts)
+			if err != nil {
+				pushError(err)
+				cancel()
+			}
+
+			if err := cursor.All(context.TODO(), &buffer.docs[page]); err != nil {
+				pushError(err)
+				cancel()
+			}
+
+			buffer.flush(int(page))
+			bar.Increment()
+
+			cancel()
 		}
-
-		if err := cursor.All(context.TODO(), &buffer.docs[page]); err != nil {
-			fmt.Println(err)
-		}
-
-		go func(page int) {
-			buffer.flush(page, &buffering, failures)
-		}(int(page))
-
-		bar.Increment()
-	}
+	}()
 
 	wg.Done()
 
-	bar.Completed()
-
 	return
+}
+
+func fetchPageCount(coll *mongo.Collection, nPages *int64, limit int64) error {
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+
+	totalDocs, err := coll.CountDocuments(ctx, bson.D{})
+
+	if err != nil {
+		return err
+	} else if totalDocs < limit {
+		*nPages = 1
+	} else {
+		*nPages = totalDocs/limit + 1
+	}
+
+	return nil
 }
 
 func startBarForCollection(name string, total int64, p *mpb.Progress) *mpb.Bar {
@@ -138,4 +146,8 @@ func startBarForCollection(name string, total int64, p *mpb.Progress) *mpb.Bar {
 			),
 		),
 	)
+}
+
+func pushError(err error) {
+	failures = append(failures, err)
 }

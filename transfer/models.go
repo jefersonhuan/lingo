@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"mongo-transfer/database"
-	"sync"
 	"time"
 )
 
@@ -20,30 +19,20 @@ type Transfer struct {
 
 type CollectionBuffer struct {
 	handler *mongo.Collection
-	mutex   *sync.Mutex
 	docs    [][]bson.M
 }
 
-func (buffer *CollectionBuffer) flush(page int, wg *sync.WaitGroup, failures *[]error) {
-	var converterWg sync.WaitGroup
-
+func (buffer *CollectionBuffer) flush(page int) {
 	var docs = make([]interface{}, len(buffer.docs[page]))
 
-	converterWg.Add(len(buffer.docs[page]))
-
-	go func() {
-		for index, doc := range buffer.docs[page] {
-			docs[index] = doc
-			converterWg.Done()
-		}
-	}()
-
-	converterWg.Wait()
+	for index, doc := range buffer.docs[page] {
+		docs[index] = doc
+	}
 
 	opts := options.InsertMany().SetOrdered(true)
 	if _, err := buffer.handler.InsertMany(context.TODO(), docs, opts); err != nil {
-		*failures = append(*failures, err)
+		pushError(err)
 	}
 
-	wg.Done()
+	buffering.Done()
 }
