@@ -4,18 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"lingo/database"
 	"lingo/utils"
-	"strings"
 	"sync"
 	"time"
 )
 
 const barTitleWidth = 45
+const paginationSize = 16 * 1000 * 1000 // kb
 
 var wg, buffering sync.WaitGroup
 var failures []error
@@ -41,8 +40,19 @@ func (transfer *Transfer) clone() (err error) {
 
 		go func(db database.Database) {
 			for index, coll := range db.Collections {
-				sourceCollection := source.Client.Database(dbName).Collection(coll)
 
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				result := source.Client.Database(dbName).RunCommand(ctx, bson.M{"collStats": coll})
+
+				var stats bson.M
+				err = result.Decode(&stats)
+
+				if err == nil {
+					getStat(&buffers[index].size, stats["size"])
+					getStat(&buffers[index].avgObjSize, stats["avgObjSize"])
+				}
+
+				sourceCollection := source.Client.Database(dbName).Collection(coll)
 				buffers[index].handler = target.Client.Database(dbName).Collection(coll)
 
 				if err = stepCloning(sourceCollection, &buffers[index], p); err != nil {
@@ -51,14 +61,13 @@ func (transfer *Transfer) clone() (err error) {
 
 					continue
 				}
+
+				cancel()
 			}
 		}(db)
 	}
 
 	wg.Wait()
-
-	fmt.Println(utils.ColorfulString("cyan", "Finishing sync"))
-
 	buffering.Wait()
 
 	if len(failures) != 0 {
@@ -69,14 +78,15 @@ func (transfer *Transfer) clone() (err error) {
 		}
 	}
 
-	return
+	return nil
 }
 
 func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, p *mpb.Progress) (err error) {
 	var limit int64 = 4000
 	var nPages, page int64
 
-	if err = fetchPageCount(source, &nPages, limit); err != nil {
+	if err = fetchPageCount(source, *buffer, &nPages, &limit); err != nil {
+		wg.Done()
 		return
 	}
 
@@ -92,13 +102,15 @@ func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, p *mpb.Prog
 
 			cursor, err := source.Find(ctx, bson.D{}, opts)
 			if err != nil {
+				buffering.Done()
 				pushError(err)
-				cancel()
+				continue
 			}
 
 			if err := cursor.All(context.TODO(), &buffer.docs[page]); err != nil {
+				buffering.Done()
 				pushError(err)
-				cancel()
+				continue
 			}
 
 			buffer.flush(int(page))
@@ -113,41 +125,26 @@ func stepCloning(source *mongo.Collection, buffer *CollectionBuffer, p *mpb.Prog
 	return
 }
 
-func fetchPageCount(coll *mongo.Collection, nPages *int64, limit int64) error {
+func fetchPageCount(coll *mongo.Collection, buffer CollectionBuffer, nPages, limit *int64) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 
 	totalDocs, err := coll.CountDocuments(ctx, bson.D{})
+	if totalDocs == 0 {
+		return fmt.Errorf("%s has no readable documents", coll.Name())
+	}
+
+	if totalDocs > *limit && buffer.size != 0 && buffer.avgObjSize != 0 {
+		*limit = paginationSize / int64(buffer.avgObjSize)
+	}
 
 	if err != nil {
 		return err
-	} else if totalDocs < limit {
+	} else if totalDocs < *limit {
 		*nPages = 1
 	} else {
-		*nPages = totalDocs/limit + 1
+		*nPages = totalDocs/(*limit) + 1
 	}
 
-	return nil
-}
-
-func startBarForCollection(name string, total int64, p *mpb.Progress) *mpb.Bar {
-	if len(name) < barTitleWidth {
-		name += strings.Repeat(" ", barTitleWidth-len(name))
-	}
-
-	return p.AddBar(total,
-		mpb.PrependDecorators(
-			decor.Name(name),
-			decor.Percentage(decor.WCSyncSpace),
-		),
-		mpb.AppendDecorators(
-			decor.OnComplete(
-				decor.EwmaETA(decor.ET_STYLE_GO, 60), "finished",
-			),
-		),
-	)
-}
-
-func pushError(err error) {
-	failures = append(failures, err)
+	return ctx.Err()
 }

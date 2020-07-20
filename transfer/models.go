@@ -20,6 +20,8 @@ type Transfer struct {
 type CollectionBuffer struct {
 	handler *mongo.Collection
 	docs    [][]bson.M
+
+	size, avgObjSize float64
 }
 
 func (buffer *CollectionBuffer) flush(page int) {
