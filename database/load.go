@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
-	"mongo-transfer/utils"
+	"lingo/utils"
 )
 
 func (server *Server) LoadAll() error {

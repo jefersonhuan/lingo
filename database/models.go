@@ -2,8 +2,8 @@ package database
 
 import (
 	"go.mongodb.org/mongo-driver/mongo"
-	"mongo-transfer/store"
-	"mongo-transfer/utils"
+	"lingo/store"
+	"lingo/utils"
 	"strconv"
 	"time"
 )

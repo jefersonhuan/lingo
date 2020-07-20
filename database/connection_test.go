@@ -2,7 +2,7 @@ package database
 
 import (
 	"errors"
-	"mongo-transfer/utils"
+	"lingo/utils"
 	"testing"
 )
 

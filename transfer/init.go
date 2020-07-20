@@ -2,7 +2,7 @@ package transfer
 
 import (
 	"fmt"
-	"mongo-transfer/utils"
+	"lingo/utils"
 	"time"
 )
 

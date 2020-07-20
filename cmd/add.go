@@ -41,26 +41,26 @@ func AddServerPrompt() (err error) {
 
 	var argsRead int
 
-	fmt.Print("Host [default localhost]: ")
+	fmt.Print("Host: [default localhost] ")
 	if argsRead, err = fmt.Scanln(&host); argsRead == 0 {
 		host = "localhost"
 	} else if err != nil {
 		return
 	}
 
-	fmt.Print("Port [default 27017]: ")
+	fmt.Print("Port: [default 27017] ")
 	if argsRead, err = fmt.Scanln(&port); argsRead == 0 {
 		port = 27017
 	} else if err != nil {
 		return
 	}
 
-	fmt.Print("User [default blank]: ")
+	fmt.Print("User: [default blank] ")
 	if argsRead, err = fmt.Scanln(&username); argsRead != 0 && err != nil {
 		return
 	}
 
-	fmt.Print("Password [default blank]: ")
+	fmt.Print("Password: [default blank] ")
 	if argsRead, err = fmt.Scanln(&password); argsRead != 0 && err != nil {
 		return
 	}
