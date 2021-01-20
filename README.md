@@ -1,3 +1,5 @@
+### ⚠️ This project was made for Go's concurrency model studies only. Don't use it in production! ⚠️
+
 # Lingo CLI
 
 Lingo is a CLI MongoDB utility that helps you transfer data from one server to another 
